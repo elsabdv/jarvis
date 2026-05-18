@@ -3,1282 +3,763 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>J.A.R.V.I.S — AI Assistant</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>J.A.R.V.I.S</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --blue: #00d4ff;
-  --blue2: #0088cc;
-  --blue3: #003855;
-  --glow: #00d4ff;
-  --dark: #020810;
-  --dark2: #040d1a;
-  --dark3: #071428;
-  --text: #c8eeff;
-  --text2: rgba(200,238,255,0.5);
-  --gold: #ffd700;
+  --c: #00e5ff;
+  --c2: #0077a8;
+  --c3: #00ff9d;
+  --bg: #030a14;
+  --bg2: #06111f;
+  --bg3: #091827;
+  --text: #d0f0ff;
+  --muted: rgba(180,230,255,0.4);
+  --border: rgba(0,229,255,0.12);
+  --border2: rgba(0,229,255,0.25);
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-html,body { width:100%; height:100%; overflow:hidden; }
-body {
-  background: var(--dark);
-  color: var(--text);
-  font-family: 'Rajdhani', sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Exo 2',sans-serif;color:var(--text)}
 
-/* ========= SCREENS ========= */
-.screen { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:10; }
-.screen.active { display:flex; }
+/* BG */
+#bgCanvas{position:fixed;inset:0;z-index:0}
 
-/* ========= BG CANVAS ========= */
-#bgCanvas { position:fixed; inset:0; z-index:0; }
+/* SCREEN */
+.screen{position:fixed;inset:0;display:none;z-index:10}
+.screen.active{display:flex}
 
-/* ========= AUTH SCREEN ========= */
-#authScreen {
-  flex-direction:column;
-  text-align:center;
-  background: radial-gradient(ellipse at center, rgba(0,80,120,0.15) 0%, transparent 70%);
+/* NAME SCREEN */
+#nameScreen{align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(0,100,140,0.12) 0%,transparent 70%)}
+.name-box{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:28px;
+  max-width:460px;width:90%;
 }
-.auth-box {
-  position:relative; z-index:2;
-  display:flex; flex-direction:column; align-items:center; gap:32px;
+.logo-text{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(2.8rem,8vw,5.5rem);
+  letter-spacing:12px;
+  color:var(--c);
+  text-shadow:0 0 40px rgba(0,229,255,0.5),0 0 80px rgba(0,229,255,0.2);
+  animation:logoPulse 3s ease infinite;
 }
-.auth-logo {
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(3rem,8vw,6rem);
-  font-weight:900;
-  letter-spacing:8px;
-  background: linear-gradient(180deg, #ffffff 0%, var(--blue) 60%, var(--blue2) 100%);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  filter: drop-shadow(0 0 30px rgba(0,212,255,0.5));
-  animation: logoPulse 3s ease infinite;
-}
-@keyframes logoPulse { 0%,100%{filter:drop-shadow(0 0 30px rgba(0,212,255,0.5))} 50%{filter:drop-shadow(0 0 60px rgba(0,212,255,0.9))} }
-
-.auth-sub {
-  font-size:1rem; letter-spacing:4px; text-transform:uppercase;
-  color:var(--text2); font-weight:300;
-}
-.auth-ring {
-  width:200px; height:200px; position:relative; margin:10px 0;
-}
-.auth-ring svg { width:100%; height:100%; animation:rotateSvg 8s linear infinite; }
-@keyframes rotateSvg { to{transform:rotate(360deg)} }
-.auth-ring-inner {
-  position:absolute; inset:20px;
-  border-radius:50%;
-  background: radial-gradient(circle, rgba(0,100,160,0.3), rgba(0,20,40,0.8));
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:2px; color:var(--blue);
-}
-.google-btn {
-  display:flex; align-items:center; gap:14px;
-  padding:16px 36px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(0,212,255,0.3);
-  border-radius:50px;
-  color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  font-size:1.1rem; font-weight:600; letter-spacing:1px;
-  cursor:pointer;
-  transition:all 0.3s;
-  position:relative; overflow:hidden;
-}
-.google-btn::before {
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.1),transparent);
-  transform:translateX(-100%); transition:transform 0.5s;
-}
-.google-btn:hover { border-color:var(--blue); box-shadow:0 0 30px rgba(0,212,255,0.2); transform:translateY(-2px); }
-.google-btn:hover::before { transform:translateX(100%); }
-.google-icon { width:24px; height:24px; }
-
-/* ========= ONBOARDING ========= */
-#onboardScreen { flex-direction:column; }
-.onboard-box {
-  position:relative; z-index:2;
-  max-width:700px; width:90%;
-  background:rgba(4,13,26,0.95);
-  border:1px solid rgba(0,212,255,0.2);
-  border-radius:24px;
-  padding:48px;
-  backdrop-filter:blur(20px);
-  box-shadow:0 0 80px rgba(0,212,255,0.05);
-}
-.step { display:none; flex-direction:column; gap:24px; }
-.step.active { display:flex; }
-.step-num { font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--blue); letter-spacing:3px; }
-.step h2 { font-family:'Orbitron',sans-serif; font-size:1.6rem; line-height:1.3; }
-.step h2 span { color:var(--blue); }
-.step p { color:var(--text2); line-height:1.8; font-size:1rem; }
-
-.perms-list { display:flex; flex-direction:column; gap:12px; }
-.perm-item {
-  display:flex; align-items:center; gap:16px;
-  padding:16px 20px;
-  background:rgba(0,212,255,0.04);
-  border:1px solid rgba(0,212,255,0.1);
-  border-radius:14px;
-}
-.perm-icon { font-size:1.5rem; width:40px; text-align:center; }
-.perm-text { flex:1; }
-.perm-text strong { display:block; font-size:1rem; margin-bottom:2px; }
-.perm-text span { font-size:0.82rem; color:var(--text2); }
-.perm-check { color:var(--blue); font-size:1.2rem; }
-
-.voice-cards { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.voice-card {
-  padding:24px;
-  background:rgba(0,212,255,0.03);
-  border:2px solid rgba(0,212,255,0.1);
-  border-radius:16px;
-  text-align:center;
-  cursor:pointer;
-  transition:all 0.3s;
-  position:relative;
-}
-.voice-card:hover { border-color:rgba(0,212,255,0.4); background:rgba(0,212,255,0.07); }
-.voice-card.selected { border-color:var(--blue); background:rgba(0,212,255,0.1); box-shadow:0 0 30px rgba(0,212,255,0.15); }
-.voice-card .vc-icon { font-size:3rem; margin-bottom:12px; display:block; }
-.voice-card h3 { font-family:'Orbitron',sans-serif; font-size:1rem; margin-bottom:6px; }
-.voice-card p { font-size:0.82rem; color:var(--text2); }
-.preview-btn {
-  margin-top:12px;
-  padding:8px 20px;
-  background:rgba(0,212,255,0.1);
-  border:1px solid rgba(0,212,255,0.3);
-  border-radius:50px;
-  color:var(--blue);
-  font-family:'Rajdhani',sans-serif;
-  font-size:0.85rem; font-weight:600;
-  cursor:pointer; transition:all 0.2s;
-}
-.preview-btn:hover { background:rgba(0,212,255,0.2); }
-.voice-selected-badge {
-  position:absolute; top:10px; right:10px;
-  background:var(--blue); color:#000;
-  font-size:0.65rem; font-weight:700;
-  padding:3px 10px; border-radius:50px;
-  display:none; letter-spacing:1px;
-}
-.voice-card.selected .voice-selected-badge { display:block; }
-
-.name-input {
+@keyframes logoPulse{0%,100%{text-shadow:0 0 40px rgba(0,229,255,0.5)}50%{text-shadow:0 0 70px rgba(0,229,255,0.9),0 0 120px rgba(0,229,255,0.3)}}
+.logo-sub{font-size:.72rem;letter-spacing:4px;color:var(--muted);text-transform:uppercase;font-weight:300}
+.name-prompt{font-size:1rem;color:var(--muted);letter-spacing:1px;text-align:center;line-height:1.7}
+.name-inp{
   width:100%;
-  background:rgba(0,212,255,0.05);
-  border:1px solid rgba(0,212,255,0.2);
-  border-radius:12px;
-  padding:16px 20px;
+  background:rgba(0,229,255,0.04);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:14px 20px;
   color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  font-size:1.1rem; font-weight:500;
+  font-family:'Share Tech Mono',monospace;
+  font-size:1.1rem;
+  letter-spacing:2px;
   outline:none;
-  transition:border-color 0.3s;
+  text-align:center;
+  transition:border-color .3s,box-shadow .3s;
 }
-.name-input:focus { border-color:var(--blue); box-shadow:0 0 20px rgba(0,212,255,0.1); }
-.name-input::placeholder { color:var(--text2); }
+.name-inp:focus{border-color:var(--c);box-shadow:0 0 24px rgba(0,229,255,0.1)}
+.name-inp::placeholder{color:var(--muted);letter-spacing:3px}
+.start-btn{
+  padding:14px 48px;
+  background:transparent;
+  border:1px solid var(--c);
+  border-radius:4px;
+  color:var(--c);
+  font-family:'Share Tech Mono',monospace;
+  font-size:.85rem;letter-spacing:4px;
+  cursor:pointer;
+  transition:all .3s;
+  position:relative;overflow:hidden;
+}
+.start-btn::before{content:'';position:absolute;inset:0;background:var(--c);transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:0}
+.start-btn:hover::before{transform:scaleX(1)}
+.start-btn:hover{color:#000}
+.start-btn span{position:relative;z-index:1}
+.voice-pick{display:flex;gap:12px;width:100%}
+.vp-opt{
+  flex:1;padding:14px 10px;
+  background:rgba(0,229,255,0.03);
+  border:1px solid var(--border);
+  border-radius:6px;
+  text-align:center;cursor:pointer;
+  transition:all .25s;
+}
+.vp-opt:hover{border-color:var(--border2)}
+.vp-opt.sel{border-color:var(--c);background:rgba(0,229,255,0.08)}
+.vp-opt .vi{font-size:1.8rem;display:block;margin-bottom:6px}
+.vp-opt h4{font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:2px;color:var(--c);margin-bottom:4px}
+.vp-opt p{font-size:.72rem;color:var(--muted)}
+.voice-prev{
+  margin-top:8px;padding:5px 14px;
+  background:rgba(0,229,255,0.08);border:1px solid var(--border2);
+  border-radius:30px;color:var(--c);
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:1px;
+  cursor:pointer;transition:background .2s;
+}
+.voice-prev:hover{background:rgba(0,229,255,0.18)}
 
-.ob-btn {
-  padding:16px 40px;
-  background:linear-gradient(135deg, var(--blue2), var(--blue));
-  border:none; border-radius:50px;
-  color:#000;
-  font-family:'Orbitron',sans-serif;
-  font-size:0.85rem; font-weight:700; letter-spacing:2px;
-  cursor:pointer; transition:all 0.3s;
-  align-self:flex-end;
-}
-.ob-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,212,255,0.4); }
-
-/* ========= WELCOME SCREEN ========= */
-#welcomeScreen { flex-direction:column; text-align:center; }
-.welcome-content { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:24px; }
-.welcome-avatar {
-  width:120px; height:120px; border-radius:50%;
-  background:radial-gradient(circle, rgba(0,150,200,0.3), rgba(0,30,60,0.8));
-  border:2px solid rgba(0,212,255,0.4);
-  display:flex; align-items:center; justify-content:center;
-  font-size:3.5rem;
-  box-shadow:0 0 60px rgba(0,212,255,0.3);
-  animation:welcomePulse 2s ease infinite;
-}
-@keyframes welcomePulse { 0%,100%{box-shadow:0 0 60px rgba(0,212,255,0.3)} 50%{box-shadow:0 0 100px rgba(0,212,255,0.6)} }
-.welcome-title { font-family:'Orbitron',sans-serif; font-size:clamp(1.5rem,4vw,2.5rem); line-height:1.4; }
-.welcome-title .wname { color:var(--blue); }
-.welcome-sub { color:var(--text2); font-size:1rem; max-width:400px; line-height:1.7; }
-.welcome-bar {
-  width:300px; height:3px;
-  background:rgba(0,212,255,0.1);
-  border-radius:3px; overflow:hidden;
-}
-.welcome-progress { height:100%; background:var(--blue); border-radius:3px; animation:loadBar 3s ease forwards; }
-@keyframes loadBar { from{width:0} to{width:100%} }
-
-/* ========= MAIN JARVIS ========= */
-#mainScreen { align-items:stretch; }
-.jarvis-layout { display:flex; width:100%; height:100vh; position:relative; z-index:2; }
+/* MAIN */
+#mainScreen{flex-direction:row;align-items:stretch}
 
 /* SIDEBAR */
-.jarvis-sidebar {
-  width:70px; background:rgba(4,13,26,0.95);
-  border-right:1px solid rgba(0,212,255,0.1);
-  display:flex; flex-direction:column; align-items:center;
-  padding:20px 0; gap:8px;
-  transition:width 0.3s;
-}
-.jarvis-sidebar:hover { width:200px; }
-.sb-btn {
-  width:46px; height:46px;
-  display:flex; align-items:center; justify-content:center;
-  border-radius:12px;
-  cursor:pointer;
-  transition:all 0.2s;
-  position:relative;
-  font-size:1.3rem;
-  color:var(--text2);
-  border:1px solid transparent;
-  white-space:nowrap; overflow:hidden;
-}
-.sb-btn:hover, .sb-btn.active { background:rgba(0,212,255,0.1); border-color:rgba(0,212,255,0.3); color:var(--blue); }
-.sb-label { display:none; margin-left:10px; font-size:0.85rem; font-weight:600; letter-spacing:1px; }
-.jarvis-sidebar:hover .sb-btn { width:160px; justify-content:flex-start; padding:0 14px; }
-.jarvis-sidebar:hover .sb-label { display:block; }
-.sb-spacer { flex:1; }
-.sb-profile {
-  width:42px; height:42px; border-radius:50%;
-  background:linear-gradient(135deg,var(--blue2),var(--blue));
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.1rem; cursor:pointer;
-  border:2px solid rgba(0,212,255,0.3);
+.sidebar{
+  width:64px;
+  background:rgba(6,17,31,0.97);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0;gap:6px;
+  transition:width .3s cubic-bezier(.4,0,.2,1);
   overflow:hidden;
+  position:relative;z-index:5;
 }
-.sb-profile img { width:100%; height:100%; object-fit:cover; }
+.sidebar:hover{width:190px}
+.sb-item{
+  width:46px;height:46px;
+  display:flex;align-items:center;
+  border-radius:6px;cursor:pointer;
+  transition:all .2s;
+  color:var(--muted);
+  border:1px solid transparent;
+  white-space:nowrap;overflow:hidden;
+  flex-shrink:0;
+  padding:0 13px;
+}
+.sb-item:hover,.sb-item.act{background:rgba(0,229,255,0.08);border-color:var(--border2);color:var(--c)}
+.sb-icon{font-size:1.15rem;flex-shrink:0;width:20px;text-align:center}
+.sb-lbl{display:none;margin-left:10px;font-size:.78rem;letter-spacing:2px;font-weight:300}
+.sidebar:hover .sb-item{width:162px}
+.sidebar:hover .sb-lbl{display:block}
+.sb-spacer{flex:1}
+.sb-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c2),var(--c));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:.9rem;
+  cursor:pointer;border:1px solid var(--border2);
+  flex-shrink:0;color:#000;font-weight:700;
+  transition:box-shadow .2s;
+}
+.sb-avatar:hover{box-shadow:0 0 20px rgba(0,229,255,0.3)}
 
 /* CENTER */
-.jarvis-center {
-  flex:1; display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
+.center{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
   position:relative;
 }
 
-/* HUD top */
-.hud-top {
-  position:absolute; top:20px; left:0; right:0;
-  display:flex; justify-content:space-between; align-items:flex-start;
-  padding:0 24px;
+/* HUD */
+.hud-top{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:18px 24px;
+  pointer-events:none;
 }
-.hud-block { display:flex; flex-direction:column; gap:4px; }
-.hud-label { font-size:0.65rem; letter-spacing:3px; color:var(--text2); text-transform:uppercase; }
-.hud-val { font-family:'Orbitron',sans-serif; font-size:0.85rem; color:var(--blue); }
-.hud-status {
-  display:flex; align-items:center; gap:8px;
-  padding:8px 16px;
-  background:rgba(0,212,255,0.05);
-  border:1px solid rgba(0,212,255,0.1);
-  border-radius:50px;
-  font-size:0.75rem; letter-spacing:2px; color:var(--text2);
+.hud-col{display:flex;flex-direction:column;gap:6px}
+.hud-lbl{font-size:.6rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.hud-val{font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--c)}
+.hud-status{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 18px;
+  border:1px solid var(--border);
+  border-radius:2px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.65rem;letter-spacing:3px;color:var(--muted);
+  background:rgba(6,17,31,0.7);
+  backdrop-filter:blur(8px);
 }
-.status-dot { width:8px; height:8px; border-radius:50%; background:var(--blue); animation:blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.dot{width:6px;height:6px;border-radius:50%;background:var(--c);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-/* JARVIS CORE */
-.jarvis-core { position:relative; width:320px; height:320px; }
-
-.core-rings { position:absolute; inset:0; }
-.ring {
-  position:absolute; border-radius:50%;
-  border:1px solid rgba(0,212,255,0.15);
-  animation:ringRotate linear infinite;
-}
-.ring:nth-child(1) { inset:0; animation-duration:20s; border-color:rgba(0,212,255,0.2); }
-.ring:nth-child(2) { inset:15px; animation-duration:15s; animation-direction:reverse; border-style:dashed; }
-.ring:nth-child(3) { inset:30px; animation-duration:25s; border-color:rgba(0,212,255,0.25); }
-.ring:nth-child(4) { inset:45px; animation-duration:10s; animation-direction:reverse; border-style:dotted; }
-@keyframes ringRotate { to{transform:rotate(360deg)} }
-
-.core-canvas-wrap { position:absolute; inset:60px; border-radius:50%; overflow:hidden; }
-#waveCanvas { width:100%; height:100%; }
-
-.core-center {
-  position:absolute; inset:80px;
+/* CORE */
+.core-wrap{position:relative;width:300px;height:300px}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(0,229,255,0.1);animation:spin linear infinite}
+.ring:nth-child(1){inset:0;animation-duration:25s}
+.ring:nth-child(2){inset:12px;animation-duration:18s;animation-direction:reverse;border-style:dashed;border-color:rgba(0,229,255,0.07)}
+.ring:nth-child(3){inset:24px;animation-duration:30s;border-color:rgba(0,229,255,0.12)}
+.ring:nth-child(4){inset:36px;animation-duration:12s;animation-direction:reverse;border-style:dotted;border-color:rgba(0,229,255,0.06)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wave-wrap{position:absolute;inset:60px;border-radius:50%;overflow:hidden}
+#waveCanvas{width:100%;height:100%}
+.core-btn{
+  position:absolute;inset:78px;
   border-radius:50%;
-  background:radial-gradient(circle at 40% 35%, rgba(0,150,220,0.4), rgba(0,30,60,0.95));
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer;
-  box-shadow:
-    0 0 40px rgba(0,212,255,0.15),
-    inset 0 0 40px rgba(0,212,255,0.1);
-  transition:all 0.3s;
-  border:2px solid rgba(0,212,255,0.3);
+  background:radial-gradient(circle at 38% 32%,rgba(0,120,200,0.35),rgba(0,20,40,0.95));
+  border:1px solid rgba(0,229,255,0.25);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;cursor:pointer;
+  box-shadow:0 0 40px rgba(0,229,255,0.08),inset 0 0 30px rgba(0,229,255,0.06);
+  transition:all .4s;
 }
-.core-center:hover { box-shadow:0 0 60px rgba(0,212,255,0.3), inset 0 0 40px rgba(0,212,255,0.15); }
-.core-center.listening {
-  animation:listenPulse 1s ease infinite;
-  border-color:rgba(0,212,255,0.8);
-}
-.core-center.speaking {
-  animation:speakPulse 0.5s ease infinite;
-  border-color:rgba(0,255,180,0.8);
-}
-@keyframes listenPulse { 0%,100%{box-shadow:0 0 40px rgba(0,212,255,0.4)} 50%{box-shadow:0 0 80px rgba(0,212,255,0.8)} }
-@keyframes speakPulse { 0%,100%{box-shadow:0 0 40px rgba(0,255,180,0.4)} 50%{box-shadow:0 0 80px rgba(0,255,180,0.8)} }
+.core-btn:hover{box-shadow:0 0 60px rgba(0,229,255,0.2),inset 0 0 30px rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.4)}
+.core-btn.listening{animation:listenPulse 1.2s ease infinite;border-color:rgba(0,229,255,.7)}
+.core-btn.speaking{animation:speakPulse .8s ease infinite;border-color:rgba(0,255,157,.7)}
+@keyframes listenPulse{0%,100%{box-shadow:0 0 40px rgba(0,229,255,.3)}50%{box-shadow:0 0 80px rgba(0,229,255,.7)}}
+@keyframes speakPulse{0%,100%{box-shadow:0 0 40px rgba(0,255,157,.3)}50%{box-shadow:0 0 80px rgba(0,255,157,.7)}}
+.core-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--c);text-align:center;line-height:2}
 
-.core-icon { font-family:'Orbitron',sans-serif; font-size:0.7rem; letter-spacing:2px; color:var(--blue); text-align:center; line-height:1.6; }
-
-/* SIDE WAVES */
-.side-waves { position:absolute; top:50%; transform:translateY(-50%); display:flex; align-items:center; }
-.side-waves.left { right:calc(100% + 20px); }
-.side-waves.right { left:calc(100% + 20px); }
-.wave-bar {
-  width:3px; border-radius:3px;
-  background:var(--blue); margin:0 2px;
-  opacity:0.5;
-  transition:height 0.1s ease;
-}
+/* SIDE BARS */
+.side-bars{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:3px}
+.side-bars.left{right:calc(100% + 16px)}
+.side-bars.right{left:calc(100% + 16px)}
+.bar{width:2px;border-radius:2px;background:var(--c);opacity:.35;transition:height .08s ease}
 
 /* TRANSCRIPT */
-.transcript-box {
-  position:absolute; bottom:90px; left:50%; transform:translateX(-50%);
-  width:min(500px,80vw);
-  min-height:60px;
-  background:rgba(4,13,26,0.85);
-  border:1px solid rgba(0,212,255,0.15);
-  border-radius:16px;
-  padding:16px 20px;
-  backdrop-filter:blur(10px);
+.transcript{
+  position:absolute;bottom:88px;left:50%;transform:translateX(-50%);
+  width:min(520px,82vw);
+  background:rgba(6,17,31,0.88);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:16px 22px;
+  backdrop-filter:blur(12px);
   text-align:center;
-  font-size:1rem; line-height:1.6;
+  min-height:64px;
 }
-.transcript-box .t-user { color:var(--blue); font-weight:600; margin-bottom:8px; }
-.transcript-box .t-reply { color:var(--text); }
+.t-user{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--c);margin-bottom:8px;letter-spacing:1px}
+.t-reply{font-size:.9rem;color:var(--text);line-height:1.6;font-weight:300}
 
-/* INPUT ROW */
-.input-row {
-  position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
-  width:min(600px,85vw);
-  display:flex; gap:10px;
+/* INPUT */
+.inp-row{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  width:min(580px,84vw);
+  display:flex;gap:8px;align-items:center;
 }
-.text-inp {
+.txt-inp{
   flex:1;
-  background:rgba(4,13,26,0.9);
-  border:1px solid rgba(0,212,255,0.2);
-  border-radius:50px;
-  padding:14px 22px;
+  background:rgba(6,17,31,0.9);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:12px 20px;
   color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  font-size:1rem; outline:none;
-  transition:border-color 0.3s;
+  font-family:'Exo 2',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .3s;
 }
-.text-inp:focus { border-color:rgba(0,212,255,0.5); }
-.text-inp::placeholder { color:var(--text2); }
-.mic-btn, .send-btn {
-  width:50px; height:50px; border-radius:50%;
-  border:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.2rem; transition:all 0.3s;
+.txt-inp:focus{border-color:rgba(0,229,255,0.4)}
+.txt-inp::placeholder{color:var(--muted)}
+.icon-btn{
+  width:44px;height:44px;border-radius:4px;
+  border:1px solid var(--border);
+  background:rgba(0,229,255,0.05);
+  color:var(--c);font-size:1.1rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;flex-shrink:0;
 }
-.mic-btn { background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3); color:var(--blue); }
-.mic-btn:hover, .mic-btn.active { background:var(--blue); color:#000; box-shadow:0 0 25px rgba(0,212,255,0.5); }
-.send-btn { background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#000; }
-.send-btn:hover { transform:scale(1.08); box-shadow:0 0 20px rgba(0,212,255,0.4); }
+.icon-btn:hover,.icon-btn.active{background:rgba(0,229,255,0.15);border-color:var(--border2)}
+.icon-btn.send{background:rgba(0,229,255,0.12);border-color:var(--border2)}
+.icon-btn.send:hover{background:rgba(0,229,255,0.25)}
 
-/* RIGHT PANEL */
-.jarvis-right {
-  width:280px;
-  background:rgba(4,13,26,0.95);
-  border-left:1px solid rgba(0,212,255,0.1);
-  display:flex; flex-direction:column;
-  padding:20px;
-  gap:16px;
+/* RIGHT */
+.right-panel{
+  width:260px;
+  background:rgba(6,17,31,0.97);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:18px;gap:14px;
   overflow-y:auto;
 }
-.panel-title { font-family:'Orbitron',sans-serif; font-size:0.7rem; letter-spacing:3px; color:var(--text2); text-transform:uppercase; }
-.info-card {
-  background:rgba(0,212,255,0.03);
-  border:1px solid rgba(0,212,255,0.08);
-  border-radius:14px;
-  padding:16px;
+.panel-hdr{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:4px;color:var(--muted);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.info-card{
+  background:rgba(0,229,255,0.02);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:14px;
 }
-.info-card .ic-title { font-size:0.75rem; color:var(--text2); letter-spacing:1px; margin-bottom:8px; }
-.info-card .ic-val { font-family:'Orbitron',sans-serif; font-size:1.1rem; color:var(--blue); }
-.info-card .ic-sub { font-size:0.8rem; color:var(--text2); margin-top:4px; }
-.cmd-list { display:flex; flex-direction:column; gap:6px; }
-.cmd-chip {
+.ic-lbl{font-size:.68rem;color:var(--muted);letter-spacing:1px;margin-bottom:6px;font-family:'Share Tech Mono',monospace}
+.ic-val{font-family:'Share Tech Mono',monospace;font-size:1rem;color:var(--c)}
+.ic-sub{font-size:.72rem;color:var(--muted);margin-top:3px}
+.weather-row{display:flex;align-items:center;gap:12px}
+.w-icon{font-size:2rem}
+.w-temp{font-family:'Share Tech Mono',monospace;font-size:1.3rem;color:var(--c)}
+.w-desc{font-size:.72rem;color:var(--muted);margin-top:2px}
+.cmd-list{display:flex;flex-direction:column;gap:5px}
+.cmd-chip{
   padding:8px 12px;
-  background:rgba(0,212,255,0.04);
-  border:1px solid rgba(0,212,255,0.08);
-  border-radius:8px;
-  font-size:0.8rem; color:var(--text2);
-  cursor:pointer; transition:all 0.2s;
+  background:rgba(0,229,255,0.02);
+  border:1px solid var(--border);
+  border-radius:4px;
+  font-size:.72rem;color:var(--muted);
+  cursor:pointer;transition:all .2s;line-height:1.5;
 }
-.cmd-chip:hover { border-color:rgba(0,212,255,0.25); color:var(--text); background:rgba(0,212,255,0.08); }
-.cmd-chip strong { color:var(--blue); font-size:0.75rem; }
-.history-msgs { display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto; }
-.hmsg { padding:10px 12px; background:rgba(0,212,255,0.03); border-radius:8px; font-size:0.8rem; color:var(--text2); border:1px solid rgba(0,212,255,0.06); }
-.hmsg strong { color:var(--blue); display:block; margin-bottom:2px; font-size:0.72rem; }
+.cmd-chip:hover{border-color:var(--border2);color:var(--text);background:rgba(0,229,255,0.06)}
+.cmd-chip strong{color:var(--c);display:block;font-size:.65rem;letter-spacing:1px;margin-bottom:2px}
+.hist-list{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
+.hist-item{padding:8px 10px;background:rgba(0,229,255,0.02);border:1px solid var(--border);border-radius:4px;font-size:.72rem;color:var(--muted)}
+.hist-item b{color:var(--c);display:block;font-size:.65rem;margin-bottom:2px;font-family:'Share Tech Mono',monospace}
+.server-badge{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;
+  background:rgba(0,229,255,0.02);
+  border:1px solid var(--border);border-radius:4px;
+}
+.srv-dot{width:7px;height:7px;border-radius:50%;background:#ff4444;flex-shrink:0}
+.srv-dot.on{background:#00e87a}
+.srv-txt{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--muted)}
 
-/* PROFILE PANEL */
-.profile-panel {
-  position:fixed; top:0; right:-350px; bottom:0; width:330px;
-  background:rgba(4,13,26,0.98);
-  border-left:1px solid rgba(0,212,255,0.15);
-  z-index:200;
-  padding:30px 24px;
-  transition:right 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  display:flex; flex-direction:column; gap:20px;
-  overflow-y:auto;
-  backdrop-filter:blur(20px);
+/* NOTIF */
+.notif{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  padding:10px 24px;
+  background:rgba(6,17,31,0.96);
+  border:1px solid var(--border2);border-radius:3px;
+  font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--text);
+  z-index:9999;display:none;letter-spacing:1px;
+  backdrop-filter:blur(12px);
 }
-.profile-panel.open { right:0; }
-.pp-close { position:absolute; top:20px; right:20px; background:none; border:none; color:var(--text2); font-size:1.3rem; cursor:pointer; }
-.pp-close:hover { color:var(--text); }
-.pp-avatar {
-  width:80px; height:80px; border-radius:50%;
-  background:linear-gradient(135deg,var(--blue2),var(--blue));
-  display:flex; align-items:center; justify-content:center;
-  font-size:2.2rem; margin:0 auto;
-  box-shadow:0 0 30px rgba(0,212,255,0.2);
-  border:2px solid rgba(0,212,255,0.3);
-  overflow:hidden;
-}
-.pp-avatar img { width:100%; height:100%; object-fit:cover; }
-.pp-name { font-family:'Orbitron',sans-serif; font-size:1.1rem; text-align:center; color:var(--blue); }
-.pp-email { font-size:0.82rem; text-align:center; color:var(--text2); }
-.pp-section { font-size:0.7rem; letter-spacing:3px; color:var(--text2); text-transform:uppercase; }
-.pp-field { display:flex; flex-direction:column; gap:6px; }
-.pp-field label { font-size:0.78rem; color:var(--text2); }
-.pp-input {
-  background:rgba(0,212,255,0.05);
-  border:1px solid rgba(0,212,255,0.15);
-  border-radius:10px;
-  padding:10px 14px;
-  color:var(--text);
-  font-family:'Rajdhani',sans-serif; font-size:0.95rem;
-  outline:none;
-}
-.pp-input:focus { border-color:var(--blue); }
-.pp-save {
-  padding:12px; background:linear-gradient(135deg,var(--blue2),var(--blue));
-  border:none; border-radius:10px;
-  color:#000; font-family:'Orbitron',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:2px;
-  cursor:pointer; transition:all 0.2s;
-}
-.pp-save:hover { box-shadow:0 0 20px rgba(0,212,255,0.3); }
-.voice-picker { display:flex; gap:10px; }
-.vp-btn {
-  flex:1; padding:12px 8px;
-  background:rgba(0,212,255,0.04);
-  border:1px solid rgba(0,212,255,0.12);
-  border-radius:10px;
-  color:var(--text2); font-family:'Rajdhani',sans-serif; font-size:0.85rem;
-  cursor:pointer; text-align:center; transition:all 0.2s;
-}
-.vp-btn:hover, .vp-btn.active { border-color:var(--blue); color:var(--blue); background:rgba(0,212,255,0.1); }
+.notif.show{display:block;animation:notifIn .25s ease}
+@keyframes notifIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-/* NOTIFICATION */
-.notif {
-  position:fixed; top:20px; left:50%; transform:translateX(-50%);
-  padding:12px 24px;
-  background:rgba(4,13,26,0.95);
-  border:1px solid rgba(0,212,255,0.3);
-  border-radius:50px;
-  font-size:0.88rem; color:var(--text);
-  z-index:9999;
-  display:none;
-  backdrop-filter:blur(10px);
-}
-.notif.show { display:block; animation:notifIn 0.3s ease; }
-@keyframes notifIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-
-/* WEATHER CARD */
-.weather-card {
-  background:rgba(0,212,255,0.03);
-  border:1px solid rgba(0,212,255,0.08);
-  border-radius:14px; padding:16px;
-  display:flex; align-items:center; gap:14px;
-}
-.weather-icon { font-size:2.5rem; }
-.weather-info .w-temp { font-family:'Orbitron',sans-serif; font-size:1.4rem; color:var(--blue); }
-.weather-info .w-desc { font-size:0.8rem; color:var(--text2); margin-top:2px; }
+/* SCAN LINES */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);z-index:9000}
 </style>
 </head>
 <body>
-
 <canvas id="bgCanvas"></canvas>
 <div class="notif" id="notif"></div>
 
-<!-- ===== AUTH ===== -->
-<div class="screen active" id="authScreen">
-  <div class="auth-box">
-    <div class="auth-logo">J.A.R.V.I.S</div>
-    <div class="auth-sub">Just A Rather Very Intelligent System</div>
-    <div class="auth-ring">
-      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="100" cy="100" r="95" stroke="rgba(0,212,255,0.3)" stroke-width="1" stroke-dasharray="8 6"/>
-        <circle cx="100" cy="100" r="75" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
-        <circle cx="100" cy="5" r="4" fill="#00d4ff" opacity="0.8"/>
-        <circle cx="195" cy="100" r="3" fill="#00d4ff" opacity="0.5"/>
-        <circle cx="100" cy="195" r="4" fill="#00d4ff" opacity="0.8"/>
-        <circle cx="5" cy="100" r="3" fill="#00d4ff" opacity="0.5"/>
-      </svg>
-      <div class="auth-ring-inner">INITIALIZING</div>
-    </div>
-    <button class="google-btn" onclick="signInGoogle()">
-      <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Войти через Google
-    </button>
-    <p style="color:var(--text2);font-size:0.8rem;letter-spacing:1px">Безопасный вход · Данные защищены</p>
-  </div>
-</div>
-
-<!-- ===== ONBOARDING ===== -->
-<div class="screen" id="onboardScreen">
-  <div class="onboard-box">
-
-    <!-- Step 1: Permissions -->
-    <div class="step active" id="step1">
-      <div class="step-num">ШАГ 01 / 03</div>
-      <h2>Разрешения для <span>полного контроля</span></h2>
-      <p>Чтобы J.A.R.V.I.S мог управлять вашим устройством, необходимо предоставить следующие разрешения:</p>
-      <div class="perms-list">
-        <div class="perm-item"><div class="perm-icon">🎤</div><div class="perm-text"><strong>Микрофон</strong><span>Для распознавания голосовых команд</span></div><div class="perm-check">✓</div></div>
-        <div class="perm-item"><div class="perm-icon">🔊</div><div class="perm-text"><strong>Аудио выход</strong><span>Для голосовых ответов ассистента</span></div><div class="perm-check">✓</div></div>
-        <div class="perm-item"><div class="perm-icon">💻</div><div class="perm-text"><strong>Управление ПК</strong><span>Через локальный Python сервер</span></div><div class="perm-check">✓</div></div>
-        <div class="perm-item"><div class="perm-icon">🌐</div><div class="perm-text"><strong>Интернет доступ</strong><span>Погода, поиск, ИИ ответы</span></div><div class="perm-check">✓</div></div>
-      </div>
-      <button class="ob-btn" onclick="requestMic()">Принять и продолжить →</button>
-    </div>
-
-    <!-- Step 2: Voice -->
-    <div class="step" id="step2">
-      <div class="step-num">ШАГ 02 / 03</div>
-      <h2>Выберите <span>голос ассистента</span></h2>
-      <p>Послушайте голоса и выберите тот, который вам нравится больше.</p>
-      <div class="voice-cards">
-        <div class="voice-card" id="voiceCardM" onclick="selectVoice('male')">
-          <span class="vc-icon">👨‍💼</span>
-          <h3>MARCUS</h3>
-          <p>Чёткий мужской голос. Строгий и профессиональный.</p>
-          <button class="preview-btn" onclick="event.stopPropagation();previewVoice('male')">▶ Слушать</button>
-          <div class="voice-selected-badge">ВЫБРАН</div>
+<!-- NAME SCREEN -->
+<div class="screen active" id="nameScreen">
+  <div class="name-box">
+    <div class="logo-text">J.A.R.V.I.S</div>
+    <div class="logo-sub">Just A Rather Very Intelligent System</div>
+    <div class="name-prompt">Как мне к вам обращаться?</div>
+    <input class="name-inp" id="nameInp" placeholder="ВВЕДИТЕ ИМЯ..." maxlength="20" onkeydown="if(event.key==='Enter')startJarvis()">
+    <div style="width:100%">
+      <div class="hud-lbl" style="margin-bottom:10px">Выбор голоса</div>
+      <div class="voice-pick">
+        <div class="vp-opt sel" id="voiceM" onclick="selVoice('male')">
+          <span class="vi">🤵</span>
+          <h4>MARCUS</h4>
+          <p>Мужской, чёткий</p>
+          <button class="voice-prev" onclick="event.stopPropagation();previewVoice('male')">▶ СЛУШАТЬ</button>
         </div>
-        <div class="voice-card" id="voiceCardF" onclick="selectVoice('female')">
-          <span class="vc-icon">👩‍💼</span>
-          <h3>ARIA</h3>
-          <p>Мягкий женский голос. Дружелюбный и умный.</p>
-          <button class="preview-btn" onclick="event.stopPropagation();previewVoice('female')">▶ Слушать</button>
-          <div class="voice-selected-badge">ВЫБРАН</div>
+        <div class="vp-opt" id="voiceF" onclick="selVoice('female')">
+          <span class="vi">👩‍💼</span>
+          <h4>ARIA</h4>
+          <p>Женский, мягкий</p>
+          <button class="voice-prev" onclick="event.stopPropagation();previewVoice('female')">▶ СЛУШАТЬ</button>
         </div>
       </div>
-      <button class="ob-btn" id="voiceNextBtn" onclick="goStep(3)" style="opacity:0.5" disabled>Продолжить →</button>
     </div>
-
-    <!-- Step 3: Name -->
-    <div class="step" id="step3">
-      <div class="step-num">ШАГ 03 / 03</div>
-      <h2>Как вас <span>называть</span>?</h2>
-      <p>J.A.R.V.I.S будет обращаться к вам по этому имени.</p>
-      <input class="name-input" id="userNameInput" type="text" placeholder="Введите ваше имя..." maxlength="20">
-      <button class="ob-btn" onclick="finishOnboard()">Запустить J.A.R.V.I.S →</button>
+    <div style="width:100%">
+      <div class="hud-lbl" style="margin-bottom:8px">Адрес сервера ПК (опционально)</div>
+      <input class="name-inp" id="serverInp" placeholder="https://xxxx.ngrok-free.app" style="font-size:.85rem;letter-spacing:1px">
+      <div style="font-size:.65rem;color:var(--muted);margin-top:6px;letter-spacing:1px">Оставьте пустым если сервер не нужен · ngrok http 5000</div>
     </div>
-
+    <button class="start-btn" onclick="startJarvis()"><span>[ ИНИЦИАЛИЗАЦИЯ ]</span></button>
   </div>
 </div>
 
-<!-- ===== WELCOME ===== -->
-<div class="screen" id="welcomeScreen">
-  <div class="welcome-content">
-    <div class="welcome-avatar">🤖</div>
-    <div class="welcome-title">Добро пожаловать,<br><span class="wname" id="welcomeNameDisplay">Пользователь</span></div>
-    <div class="welcome-sub" id="welcomeMsg">Системы инициализированы. J.A.R.V.I.S готов к работе и ожидает ваших команд.</div>
-    <div class="welcome-bar"><div class="welcome-progress"></div></div>
-  </div>
-</div>
-
-<!-- ===== MAIN ===== -->
+<!-- MAIN SCREEN -->
 <div class="screen" id="mainScreen">
-
   <!-- SIDEBAR -->
-  <div class="jarvis-sidebar">
-    <div class="sb-btn active" onclick="" title="Главная">🏠<span class="sb-label">Главная</span></div>
-    <div class="sb-btn" onclick="showNotif('🎵 Управление музыкой')" title="Музыка">🎵<span class="sb-label">Музыка</span></div>
-    <div class="sb-btn" onclick="showNotif('📁 Файловый менеджер')" title="Файлы">📁<span class="sb-label">Файлы</span></div>
-    <div class="sb-btn" onclick="showNotif('🌐 Браузер')" title="Браузер">🌐<span class="sb-label">Браузер</span></div>
-    <div class="sb-btn" onclick="showNotif('⚙️ Настройки')" title="Настройки">⚙️<span class="sb-label">Настройки</span></div>
+  <div class="sidebar">
+    <div class="sb-item act"><span class="sb-icon">⌂</span><span class="sb-lbl">ГЛАВНАЯ</span></div>
+    <div class="sb-item" onclick="showNotif('🎵 SPOTIFY')"><span class="sb-icon">♪</span><span class="sb-lbl">МУЗЫКА</span></div>
+    <div class="sb-item" onclick="showNotif('📁 ПРОВОДНИК')"><span class="sb-icon">◫</span><span class="sb-lbl">ФАЙЛЫ</span></div>
+    <div class="sb-item" onclick="showNotif('🌐 БРАУЗЕР')"><span class="sb-icon">◉</span><span class="sb-lbl">БРАУЗЕР</span></div>
+    <div class="sb-item" onclick="toggleSettings()"><span class="sb-icon">⚙</span><span class="sb-lbl">НАСТРОЙКИ</span></div>
     <div class="sb-spacer"></div>
-    <div class="sb-profile" onclick="toggleProfile()" id="sbProfile">👤</div>
+    <div class="sb-avatar" id="sbAva" onclick="showNotif('Профиль: '+(_name||'—'))">?</div>
   </div>
 
   <!-- CENTER -->
-  <div class="jarvis-center">
+  <div class="center">
     <div class="hud-top">
-      <div class="hud-block">
-        <div class="hud-label">Пользователь</div>
+      <div class="hud-col">
+        <div class="hud-lbl">Оператор</div>
         <div class="hud-val" id="hudUser">—</div>
-        <div class="hud-label" style="margin-top:12px">Сервер</div>
-        <div class="hud-val" id="serverStatus">● OFFLINE</div>
+        <div class="hud-lbl" style="margin-top:10px">Сервер ПК</div>
+        <div class="hud-val" id="srvVal">● OFFLINE</div>
       </div>
       <div class="hud-status">
-        <div class="status-dot"></div>
-        <span id="statusText">ОЖИДАНИЕ КОМАНДЫ</span>
+        <div class="dot"></div>
+        <span id="statusTxt">STANDBY</span>
       </div>
-      <div class="hud-block" style="text-align:right">
-        <div class="hud-label">Дата</div>
+      <div class="hud-col" style="text-align:right">
+        <div class="hud-lbl">Дата</div>
         <div class="hud-val" id="hudDate">—</div>
-        <div class="hud-label" style="margin-top:12px">Время</div>
+        <div class="hud-lbl" style="margin-top:10px">Время</div>
         <div class="hud-val" id="hudTime">—</div>
       </div>
     </div>
 
-    <div class="jarvis-core">
-      <div class="core-rings">
-        <div class="ring"></div>
-        <div class="ring"></div>
-        <div class="ring"></div>
-        <div class="ring"></div>
+    <!-- CORE -->
+    <div class="core-wrap">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="wave-wrap"><canvas id="waveCanvas"></canvas></div>
+      <div class="core-btn" id="coreBtn" onclick="toggleListen()">
+        <div class="core-label" id="coreLabel">J.A.R.V.I.S<br>НАЖМИТЕ</div>
       </div>
-      <div class="core-canvas-wrap">
-        <canvas id="waveCanvas"></canvas>
-      </div>
-      <div class="core-center" id="coreCenter" onclick="toggleListen()">
-        <div class="core-icon">J.A.R.V.I.S<br>НАЖМИТЕ</div>
-      </div>
-
-      <!-- side waves -->
-      <div class="side-waves left" id="leftWaves"></div>
-      <div class="side-waves right" id="rightWaves"></div>
+      <div class="side-bars left" id="barsL"></div>
+      <div class="side-bars right" id="barsR"></div>
     </div>
 
-    <div class="transcript-box" id="transcriptBox">
+    <div class="transcript" id="transcript">
       <div class="t-user" id="tUser" style="display:none"></div>
-      <div class="t-reply" id="tReply">Нажмите на ядро или введите команду ниже...</div>
+      <div class="t-reply" id="tReply">Нажмите на ядро или введите команду...</div>
     </div>
 
-    <div class="input-row">
-      <input class="text-inp" id="textInp" placeholder="Введите команду или вопрос..." onkeydown="if(event.key==='Enter')sendText()">
-      <button class="mic-btn" id="micBtn" onclick="toggleListen()">🎤</button>
-      <button class="send-btn" onclick="sendText()">➤</button>
+    <div class="inp-row">
+      <input class="txt-inp" id="txtInp" placeholder="Введите команду..." onkeydown="if(event.key==='Enter')sendText()">
+      <div class="icon-btn" onclick="toggleListen()" id="micBtn" title="Голос">🎤</div>
+      <div class="icon-btn send" onclick="sendText()" title="Отправить">➤</div>
     </div>
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="jarvis-right">
-    <div class="panel-title">Информация</div>
-    <div class="weather-card" id="weatherCard">
-      <div class="weather-icon">⏳</div>
-      <div class="weather-info"><div class="w-temp">—°C</div><div class="w-desc">Загрузка погоды...</div></div>
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="panel-hdr">Система</div>
+    <div class="server-badge">
+      <div class="srv-dot" id="srvDot"></div>
+      <div class="srv-txt" id="srvTxt">СЕРВЕР ОТКЛЮЧЁН</div>
+    </div>
+    <div class="info-card weather-row" id="weatherCard">
+      <div class="w-icon">⏳</div>
+      <div><div class="w-temp">—°C</div><div class="w-desc">Загрузка...</div></div>
     </div>
 
-    <div class="panel-title">Быстрые команды</div>
+    <div class="panel-hdr">Команды</div>
     <div class="cmd-list">
-      <div class="cmd-chip" onclick="sendCommand('Открой YouTube')"><strong>Голос:</strong> «Открой YouTube»</div>
-      <div class="cmd-chip" onclick="sendCommand('Какая погода сегодня')"><strong>Голос:</strong> «Какая погода»</div>
-      <div class="cmd-chip" onclick="sendCommand('Открой калькулятор')"><strong>Голос:</strong> «Открой калькулятор»</div>
-      <div class="cmd-chip" onclick="sendCommand('Который час')"><strong>Голос:</strong> «Который час»</div>
-      <div class="cmd-chip" onclick="sendCommand('Открой блокнот')"><strong>Голос:</strong> «Открой блокнот»</div>
-      <div class="cmd-chip" onclick="sendCommand('Найди в Google котики')"><strong>Голос:</strong> «Найди котиков»</div>
+      <div class="cmd-chip" onclick="sendCmd('Открой YouTube')"><strong>ГОЛОС</strong>«Открой YouTube»</div>
+      <div class="cmd-chip" onclick="sendCmd('Открой папку Документы')"><strong>ГОЛОС</strong>«Открой папку Документы»</div>
+      <div class="cmd-chip" onclick="sendCmd('Найди файл отчёт')"><strong>ГОЛОС</strong>«Найди файл отчёт»</div>
+      <div class="cmd-chip" onclick="sendCmd('Сделай скриншот')"><strong>ГОЛОС</strong>«Сделай скриншот»</div>
+      <div class="cmd-chip" onclick="sendCmd('Какая погода')"><strong>ГОЛОС</strong>«Какая погода»</div>
+      <div class="cmd-chip" onclick="sendCmd('Нагрузка процессора')"><strong>ГОЛОС</strong>«Нагрузка процессора»</div>
     </div>
 
-    <div class="panel-title">История</div>
-    <div class="history-msgs" id="historyMsgs">
-      <div class="hmsg" style="text-align:center;color:var(--text2)">Пока нет команд</div>
-    </div>
-  </div>
-
-</div>
-
-<!-- PROFILE PANEL -->
-<div class="profile-panel" id="profilePanel">
-  <button class="pp-close" onclick="toggleProfile()">✕</button>
-  <div class="pp-avatar" id="ppAvatar">👤</div>
-  <div class="pp-name" id="ppName">Пользователь</div>
-  <div class="pp-email" id="ppEmail">—</div>
-
-  <div class="pp-section">Настройки профиля</div>
-  <div class="pp-field">
-    <label>Как называть вас</label>
-    <input class="pp-input" id="ppNameInput" placeholder="Ваше имя" maxlength="20">
-  </div>
-
-  <div class="pp-section">Голос ассистента</div>
-  <div class="voice-picker">
-    <div class="vp-btn active" id="vpMale" onclick="setVoice('male')">👨 Marcus</div>
-    <div class="vp-btn" id="vpFemale" onclick="setVoice('female')">👩 Aria</div>
-  </div>
-
-  <button class="pp-save" onclick="saveProfile()">СОХРАНИТЬ</button>
-
-  <div class="pp-section">Статистика</div>
-  <div style="display:flex;flex-direction:column;gap:8px">
-    <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.08);border-radius:10px">
-      <span style="font-size:0.82rem;color:var(--text2)">Команд выполнено</span>
-      <span style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--blue)" id="statCmds">0</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.08);border-radius:10px">
-      <span style="font-size:0.82rem;color:var(--text2)">Сессий</span>
-      <span style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--blue)" id="statSessions">1</span>
+    <div class="panel-hdr">История</div>
+    <div class="hist-list" id="histList">
+      <div class="hist-item" style="text-align:center;color:var(--muted)">Пусто</div>
     </div>
   </div>
 </div>
-
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDMQg0N-0ilOi_7dE1VLR2pd9SAu8W3TTA",
-  authDomain: "stepup-98557.firebaseapp.com",
-  databaseURL: "https://stepup-98557-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "stepup-98557",
-  storageBucket: "stepup-98557.firebasestorage.app",
-  messagingSenderId: "868948325282",
-  appId: "1:868948325282:web:6c4f2e112ecb61ef2878fb",
-  measurementId: "G-LSWJKEG0ZK"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-const provider = new GoogleAuthProvider();
-
-let currentUser = null;
-
-window.signInGoogle = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    currentUser = result.user;
-    window._firebaseUser = currentUser;
-    window._firebaseDb = db;
-    await loadUserData(currentUser);
-  } catch(e) { showNotif('❌ Ошибка входа: ' + e.message); }
-};
-
-async function loadUserData(user) {
-  const snap = await get(ref(db, 'users/' + user.uid));
-  if(snap.exists()) {
-    const data = snap.val();
-    window._userData = data;
-    // Already registered — go straight to welcome
-    window._skipOnboard = true;
-    showWelcomeScreen(data.displayName || user.displayName, data);
-  } else {
-    // New user — onboarding
-    window._skipOnboard = false;
-    showScreen('onboardScreen');
-  }
-}
-
-window.saveUserData = async (data) => {
-  if(!currentUser) return;
-  await set(ref(db, 'users/' + currentUser.uid), data);
-};
-
-window.getUserData = () => window._userData || {};
-
-onAuthStateChanged(auth, user => {
-  if(user && user !== currentUser) {
-    currentUser = user;
-    window._firebaseUser = user;
-  }
-});
-</script>
 
 <script>
-// ======= BG CANVAS =======
-const bgC = document.getElementById('bgCanvas');
-const bgX = bgC.getContext('2d');
-function resizeBg(){ bgC.width=innerWidth; bgC.height=innerHeight; }
-resizeBg(); window.addEventListener('resize', resizeBg);
-const bgParts = Array.from({length:80},()=>({
-  x:Math.random()*innerWidth, y:Math.random()*innerHeight,
-  vx:(Math.random()-.5)*.2, vy:(Math.random()-.5)*.2,
-  r:Math.random()*1.2+.3, o:Math.random()*.5+.1
-}));
+// ========= BG =========
+const bgC=document.getElementById('bgCanvas');const bgX=bgC.getContext('2d');
+function resizeBg(){bgC.width=innerWidth;bgC.height=innerHeight}resizeBg();window.addEventListener('resize',resizeBg);
+const pts=Array.from({length:70},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,r:Math.random()*1+.3,o:Math.random()*.35+.08}));
 function drawBg(){
   bgX.clearRect(0,0,bgC.width,bgC.height);
-  // grid
-  bgX.globalAlpha=0.03; bgX.strokeStyle='#00d4ff'; bgX.lineWidth=1;
-  for(let x=0;x<bgC.width;x+=80){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,bgC.height);bgX.stroke();}
-  for(let y=0;y<bgC.height;y+=80){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(bgC.width,y);bgX.stroke();}
+  bgX.globalAlpha=.025;bgX.strokeStyle='#00e5ff';bgX.lineWidth=1;
+  for(let x=0;x<bgC.width;x+=60){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,bgC.height);bgX.stroke()}
+  for(let y=0;y<bgC.height;y+=60){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(bgC.width,y);bgX.stroke()}
   bgX.globalAlpha=1;
-  bgParts.forEach(p=>{
-    p.x+=p.vx; p.y+=p.vy;
-    if(p.x<0||p.x>bgC.width)p.vx*=-1;
-    if(p.y<0||p.y>bgC.height)p.vy*=-1;
-    bgX.beginPath(); bgX.arc(p.x,p.y,p.r,0,Math.PI*2);
-    bgX.fillStyle=`rgba(0,212,255,${p.o})`; bgX.fill();
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>bgC.width)p.vx*=-1;if(p.y<0||p.y>bgC.height)p.vy*=-1;
+    bgX.beginPath();bgX.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bgX.fillStyle=`rgba(0,229,255,${p.o})`;bgX.fill();
   });
   requestAnimationFrame(drawBg);
 }
 drawBg();
 
-// ======= SCREEN NAV =======
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+// ========= STATE =========
+let _name='Пользователь',_voice='male',cmdCount=0;
+
+// ========= VOICE PICK =========
+function selVoice(v){
+  _voice=v;
+  document.getElementById('voiceM').classList.toggle('sel',v==='male');
+  document.getElementById('voiceF').classList.toggle('sel',v==='female');
+}
+function previewVoice(v){
+  speak(v==='female'?'Привет! Я Aria, готова вам помочь.':'Здравствуйте. Я Marcus, ваш персональный ассистент.',v);
 }
 
-// ======= ONBOARDING =======
-let selectedVoice = null;
-
-window.requestMic = async () => {
-  try {
-    await navigator.mediaDevices.getUserMedia({audio:true});
-    goStep(2);
-  } catch(e) {
-    showNotif('⚠️ Разрешите доступ к микрофону!');
-    goStep(2); // continue anyway
-  }
-};
-
-function goStep(n) {
-  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
-  document.getElementById('step'+n).classList.add('active');
-}
-
-window.selectVoice = (v) => {
-  selectedVoice = v;
-  document.getElementById('voiceCardM').classList.toggle('selected', v==='male');
-  document.getElementById('voiceCardF').classList.toggle('selected', v==='female');
-  const btn = document.getElementById('voiceNextBtn');
-  btn.disabled = false; btn.style.opacity = '1';
-};
-
-window.previewVoice = (v) => {
-  const msg = v==='male' ? 'Здравствуйте. Я Marcus, ваш персональный ассистент.' : 'Привет! Я Aria, готова вам помочь.';
-  speak(msg, v);
-};
-
-window.goStep = goStep;
-
-window.finishOnboard = async () => {
-  const name = document.getElementById('userNameInput').value.trim() || 'Пользователь';
-  const data = {
-    displayName: name,
-    voice: selectedVoice || 'male',
-    cmdCount: 0,
-    sessions: 1,
-    createdAt: Date.now()
-  };
-  window._userData = data;
-  if(window.saveUserData) await window.saveUserData(data);
-  showWelcomeScreen(name, data);
-};
-
-function showWelcomeScreen(name, data) {
-  window._displayName = name;
-  window._voiceType = data.voice || 'male';
-  document.getElementById('welcomeNameDisplay').textContent = name;
-  showScreen('welcomeScreen');
-  const hour = new Date().getHours();
-  const greeting = hour<12?'Доброе утро':hour<17?'Добрый день':'Добрый вечер';
-  setTimeout(()=>{ speak(`${greeting}, ${name}! Я J.A.R.V.I.S, ваш персональный голосовой ассистент. Все системы инициализированы и готовы к работе.`, window._voiceType); }, 500);
-  setTimeout(()=>{ showMain(name, data); }, 4000);
-}
-
-function showMain(name, data) {
-  showScreen('mainScreen');
-  document.getElementById('hudUser').textContent = name;
-  document.getElementById('ppName').textContent = name;
-  document.getElementById('ppNameInput').value = name;
-  if(window._firebaseUser) {
-    document.getElementById('ppEmail').textContent = window._firebaseUser.email;
-    const photoURL = window._firebaseUser.photoURL;
-    if(photoURL) {
-      document.getElementById('ppAvatar').innerHTML = `<img src="${photoURL}">`;
-      document.getElementById('sbProfile').innerHTML = `<img src="${photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    }
-  }
-  document.getElementById('statCmds').textContent = data.cmdCount || 0;
-  document.getElementById('statSessions').textContent = data.sessions || 1;
-  updateVoicePicker(window._voiceType);
-  initWaveCanvas();
-  initSideWaves();
-  updateClock();
-  setInterval(updateClock, 1000);
-  checkServer();
+// ========= START =========
+function startJarvis(){
+  const n=document.getElementById('nameInp').value.trim()||'Оператор';
+  _name=n;
+  const srv=document.getElementById('serverInp').value.trim().replace(/\/$/,'');
+  if(srv)SERVER=srv;
+  document.getElementById('mainScreen').classList.add('active');
+  document.getElementById('nameScreen').classList.remove('active');
+  document.getElementById('hudUser').textContent=n;
+  const init=n[0].toUpperCase();
+  document.getElementById('sbAva').textContent=init;
+  initWave();initBars();updateClock();
+  setInterval(updateClock,1000);
+  checkServer();setInterval(checkServer,10000);
   fetchWeather();
-  setTimeout(()=>{ speak(`Добро пожаловать, ${name}. Чем могу помочь?`, window._voiceType); }, 800);
+  setTimeout(()=>{
+    const h=new Date().getHours();
+    const g=h<12?'Доброе утро':h<17?'Добрый день':'Добрый вечер';
+    speak(`${g}, ${n}. J.A.R.V.I.S инициализирован. Все системы готовы.`,_voice);
+  },400);
 }
 
-// ======= CLOCK =======
+// ========= CLOCK =========
 function updateClock(){
-  const now = new Date();
-  document.getElementById('hudTime').textContent = now.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('hudDate').textContent = now.toLocaleDateString('ru',{day:'numeric',month:'short'});
+  const now=new Date();
+  document.getElementById('hudTime').textContent=now.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('hudDate').textContent=now.toLocaleDateString('ru',{day:'numeric',month:'short'});
 }
 
-// ======= WAVE CANVAS =======
-let waveCtx, waveW, waveH;
-let audioCtx, analyser, dataArray, micStream;
-let isListening = false;
-let wavePhase = 0;
-
-function initWaveCanvas(){
-  const cv = document.getElementById('waveCanvas');
-  const wrap = cv.parentElement;
-  waveW = cv.width = wrap.clientWidth;
-  waveH = cv.height = wrap.clientHeight;
-  waveCtx = cv.getContext('2d');
-  animWave();
+// ========= WAVE =========
+let wCtx,wW,wH,wPhase=0,isListening=false,analyser=null,dataArr=null;
+function initWave(){
+  const cv=document.getElementById('waveCanvas');
+  const wrap=cv.parentElement;
+  wW=cv.width=wrap.clientWidth;wH=cv.height=wrap.clientHeight;
+  wCtx=cv.getContext('2d');animWave();
 }
-
 function animWave(){
   requestAnimationFrame(animWave);
-  if(!waveCtx) return;
-  waveCtx.clearRect(0,0,waveW,waveH);
-  wavePhase += 0.04;
-
-  let amplitude = isListening ? 30 : 12;
-  // if analyser, use mic data
-  if(analyser && isListening){
-    analyser.getByteTimeDomainData(dataArray);
-    let sum=0; for(let i=0;i<dataArray.length;i++) sum+=Math.abs(dataArray[i]-128);
-    amplitude = Math.min(50, 8 + sum/dataArray.length*3);
+  if(!wCtx)return;
+  wCtx.clearRect(0,0,wW,wH);
+  wPhase+=.035;
+  let amp=isListening?28:10;
+  if(analyser&&isListening){
+    analyser.getByteTimeDomainData(dataArr);
+    let s=0;for(let i=0;i<dataArr.length;i++)s+=Math.abs(dataArr[i]-128);
+    amp=Math.min(45,8+s/dataArr.length*2.5);
   }
-
-  for(let w=0;w<3;w++){
-    const alpha = [0.6,0.4,0.25][w];
-    const freq = [1.5,2,2.5][w];
-    const phase = wavePhase + w*1.2;
-
-    waveCtx.beginPath();
-    waveCtx.strokeStyle = `rgba(0,212,255,${alpha})`;
-    waveCtx.lineWidth = 2;
-    for(let x=0;x<=waveW;x++){
-      const y = waveH/2 + Math.sin(x/waveW*Math.PI*freq*2+phase)*amplitude + Math.sin(x/waveW*Math.PI*freq+phase*1.3)*amplitude*0.4;
-      x===0?waveCtx.moveTo(x,y):waveCtx.lineTo(x,y);
+  [[.55,1.4,0],[.35,2,1.1],[.2,2.8,2.3]].forEach(([a,fr,ph])=>{
+    wCtx.beginPath();wCtx.strokeStyle=`rgba(0,229,255,${a})`;wCtx.lineWidth=1.5;
+    for(let x=0;x<=wW;x++){
+      const y=wH/2+Math.sin(x/wW*Math.PI*fr*2+wPhase+ph)*amp+Math.sin(x/wW*Math.PI*fr+wPhase*1.4+ph)*(amp*.3);
+      x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y);
     }
-    waveCtx.stroke();
-  }
-
-  // glow center
-  const grd = waveCtx.createRadialGradient(waveW/2,waveH/2,0,waveW/2,waveH/2,waveW/2);
-  grd.addColorStop(0,'rgba(0,212,255,0.08)');
-  grd.addColorStop(1,'transparent');
-  waveCtx.fillStyle=grd;
-  waveCtx.fillRect(0,0,waveW,waveH);
-
-  updateSideWaves(amplitude);
+    wCtx.stroke();
+  });
+  updateBars(amp);
 }
 
-// ======= SIDE WAVES =======
-function initSideWaves(){
-  ['leftWaves','rightWaves'].forEach(id=>{
-    const el = document.getElementById(id);
-    el.innerHTML='';
-    for(let i=0;i<8;i++){
-      const bar = document.createElement('div');
-      bar.className='wave-bar';
-      bar.style.height='20px';
-      el.appendChild(bar);
-    }
+// ========= SIDE BARS =========
+function initBars(){
+  ['barsL','barsR'].forEach(id=>{
+    const el=document.getElementById(id);el.innerHTML='';
+    for(let i=0;i<7;i++){const b=document.createElement('div');b.className='bar';b.style.height='12px';el.appendChild(b);}
   });
 }
-
-function updateSideWaves(amplitude){
-  ['leftWaves','rightWaves'].forEach(id=>{
-    const bars = document.getElementById(id)?.querySelectorAll('.wave-bar');
-    if(!bars) return;
-    bars.forEach((bar,i)=>{
-      const h = 10 + Math.sin(wavePhase*2+i*0.8)*amplitude*0.8 + Math.random()*4;
-      bar.style.height = Math.max(6,h)+'px';
-      bar.style.opacity = 0.3 + (h/60)*0.7;
+function updateBars(amp){
+  ['barsL','barsR'].forEach(id=>{
+    document.getElementById(id)?.querySelectorAll('.bar').forEach((b,i)=>{
+      const h=Math.max(4,8+Math.sin(wPhase*2+i*.9)*amp*.7+Math.random()*3);
+      b.style.height=h+'px';b.style.opacity=.2+h/55*.7;
     });
   });
 }
 
-// ======= VOICE / SPEECH =======
-let synth = window.speechSynthesis;
-let voices = [];
-synth.onvoiceschanged = ()=>{ voices = synth.getVoices(); };
-
-function speak(text, voiceType){
-  if(!synth) return;
+// ========= TTS =========
+const synth=window.speechSynthesis;
+function speak(text,voiceType){
   synth.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'ru-RU';
-  const allVoices = synth.getVoices();
-  const ruVoices = allVoices.filter(v=>v.lang.startsWith('ru'));
-  if(ruVoices.length){
-    if(voiceType==='female') {
-      const female = ruVoices.find(v=>v.name.toLowerCase().includes('female')||v.name.includes('Milena')||v.name.includes('Irina'));
-      utt.voice = female || ruVoices[0];
-    } else {
-      const male = ruVoices.find(v=>v.name.toLowerCase().includes('male')||v.name.includes('Dmitri')||v.name.includes('Pavel'));
-      utt.voice = male || ruVoices[0];
-    }
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='ru-RU';
+  const allV=synth.getVoices();
+  const ruV=allV.filter(v=>v.lang.startsWith('ru'));
+  if(ruV.length){
+    if(voiceType==='female'){utt.voice=ruV.find(v=>v.name.includes('Milena')||v.name.includes('Irina')||v.name.toLowerCase().includes('female'))||ruV[0];}
+    else{utt.voice=ruV.find(v=>v.name.includes('Dmitri')||v.name.includes('Pavel')||v.name.toLowerCase().includes('male'))||ruV[0];}
   }
-  utt.pitch = voiceType==='female' ? 1.2 : 0.9;
-  utt.rate = 1.0;
-  utt.onstart = ()=>{ document.getElementById('coreCenter').classList.add('speaking'); setStatus('ГОВОРЮ...'); };
-  utt.onend = ()=>{ document.getElementById('coreCenter').classList.remove('speaking'); setStatus('ОЖИДАНИЕ КОМАНДЫ'); };
+  utt.pitch=voiceType==='female'?1.15:.9;utt.rate=1.0;
+  utt.onstart=()=>{document.getElementById('coreBtn').classList.add('speaking');setStatus('ГОВОРЮ...')};
+  utt.onend=()=>{document.getElementById('coreBtn').classList.remove('speaking');setStatus('STANDBY')};
   synth.speak(utt);
 }
 
-// ======= MIC / RECOGNITION =======
-let recognition = null;
-
-window.toggleListen = async () => {
-  if(isListening){ stopListen(); return; }
+// ========= RECOGNITION =========
+let recognition=null,micStream=null,audioCtx=null;
+async function toggleListen(){
+  if(isListening){stopListen();return}
   startListen();
-};
-
+}
 async function startListen(){
-  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
-    showNotif('⚠️ Браузер не поддерживает голос. Используйте Chrome.'); return;
-  }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
-    dataArray = new Uint8Array(analyser.frequencyBinCount);
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showNotif('⚠ Используйте Chrome для голоса');return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    analyser=audioCtx.createAnalyser();analyser.fftSize=256;
+    dataArr=new Uint8Array(analyser.frequencyBinCount);
     audioCtx.createMediaStreamSource(stream).connect(analyser);
-    micStream = stream;
-  } catch(e){}
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'ru-RU';
-  recognition.continuous = false;
-  recognition.interimResults = true;
-
-  recognition.onstart = ()=>{
+    micStream=stream;
+  }catch(e){}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='ru-RU';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onstart=()=>{
     isListening=true;
     document.getElementById('micBtn').classList.add('active');
-    document.getElementById('coreCenter').classList.add('listening');
-    document.getElementById('coreCenter').querySelector('.core-icon').textContent='СЛУШАЮ...';
+    document.getElementById('coreBtn').classList.add('listening');
+    document.getElementById('coreLabel').textContent='СЛУШАЮ...';
     setStatus('СЛУШАЮ...');
   };
-  recognition.onresult = (e)=>{
-    const transcript = Array.from(e.results).map(r=>r[0].transcript).join('');
+  recognition.onresult=e=>{
+    const txt=Array.from(e.results).map(r=>r[0].transcript).join('');
     document.getElementById('tUser').style.display='block';
-    document.getElementById('tUser').textContent = '🗣 ' + transcript;
-    if(e.results[e.results.length-1].isFinal){ processCommand(transcript); }
+    document.getElementById('tUser').textContent='🗣 '+txt;
+    if(e.results[e.results.length-1].isFinal)processCmd(txt);
   };
-  recognition.onend = ()=>{ stopListen(); };
-  recognition.onerror = ()=>{ stopListen(); };
+  recognition.onend=()=>stopListen();
+  recognition.onerror=()=>stopListen();
   recognition.start();
 }
-
 function stopListen(){
   isListening=false;
-  if(recognition) recognition.stop();
-  if(micStream) micStream.getTracks().forEach(t=>t.stop());
-  if(audioCtx) audioCtx.close().catch(()=>{});
-  analyser=null;
+  if(recognition)recognition.stop();
+  if(micStream)micStream.getTracks().forEach(t=>t.stop());
+  if(audioCtx)audioCtx.close().catch(()=>{});
+  analyser=null;dataArr=null;
   document.getElementById('micBtn').classList.remove('active');
-  document.getElementById('coreCenter').classList.remove('listening');
-  document.getElementById('coreCenter').querySelector('.core-icon').innerHTML='J.A.R.V.I.S<br>НАЖМИТЕ';
-  setStatus('ОЖИДАНИЕ КОМАНДЫ');
+  document.getElementById('coreBtn').classList.remove('listening');
+  document.getElementById('coreLabel').innerHTML='J.A.R.V.I.S<br>НАЖМИТЕ';
+  setStatus('STANDBY');
 }
 
-// ======= TEXT INPUT =======
-window.sendText = ()=>{
-  const inp = document.getElementById('textInp');
-  const text = inp.value.trim();
-  if(!text) return;
+// ========= TEXT INPUT =========
+function sendText(){
+  const inp=document.getElementById('txtInp');
+  const t=inp.value.trim();if(!t)return;
   inp.value='';
   document.getElementById('tUser').style.display='block';
-  document.getElementById('tUser').textContent='💬 '+text;
-  processCommand(text);
-};
-
-window.sendCommand = (cmd)=>{
+  document.getElementById('tUser').textContent='💬 '+t;
+  processCmd(t);
+}
+function sendCmd(cmd){
   document.getElementById('tUser').style.display='block';
   document.getElementById('tUser').textContent='💬 '+cmd;
-  processCommand(cmd);
-};
+  processCmd(cmd);
+}
 
-// ======= COMMAND PROCESSOR =======
-let cmdCount = 0;
+// ========= COMMAND ENGINE =========
+let aiHistory=[];
+async function processCmd(text){
+  setStatus('ОБРАБОТКА...');
+  const low=text.toLowerCase();
 
-async function processCommand(text){
-  setStatus('ОБРАБАТЫВАЮ...');
-  const lower = text.toLowerCase();
-
-  // ---- LOCAL COMMANDS ----
-  // Time
-  if(lower.includes('котор') && lower.includes('час') || lower.includes('время')){
-    const t = new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
-    reply(`Сейчас ${t}`); return;
+  // Time/Date
+  if((low.includes('котор')&&low.includes('час'))||low.includes('время')){
+    const t=new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});reply(`Сейчас ${t}`);return;
   }
-  // Date
-  if(lower.includes('дата') || lower.includes('какое сегодня') || lower.includes('число')){
-    const d = new Date().toLocaleDateString('ru',{weekday:'long',day:'numeric',month:'long'});
-    reply(`Сегодня ${d}`); return;
+  if(low.includes('дат')||low.includes('какое сегодня')||low.includes('числ')){
+    const d=new Date().toLocaleDateString('ru',{weekday:'long',day:'numeric',month:'long'});reply(`Сегодня ${d}`);return;
   }
   // Weather
-  if(lower.includes('погод') || lower.includes('температур') || lower.includes('градус')){
-    const w = window._weather;
-    if(w) reply(`Сейчас ${w.desc}, температура ${w.temp}°C. ${w.temp>20?'Тепло, можно гулять!':w.temp>10?'Прохладно, одевайтесь теплее.':'Холодно!'}`);
-    else reply('Загружаю данные о погоде...');
+  if(low.includes('погод')||low.includes('температур')||low.includes('градус')){
+    const w=window._weather;
+    if(w)reply(`${w.desc}, температура ${w.temp}°C.${w.temp>20?' Тепло!':w.temp>10?' Прохладно.':' Холодно!'}`);
+    else reply('Получаю данные о погоде...');
     return;
   }
-  // PC Commands — send to Python server
-  if(lower.includes('открой') || lower.includes('запусти') || lower.includes('закрой') || lower.includes('найди') || lower.includes('напиши') || lower.includes('создай') || lower.includes('выключи') || lower.includes('музыку') || lower.includes('громкость')){
-    await sendToServer(text); return;
-  }
   // Greeting
-  if(lower.includes('привет') || lower.includes('здравств')){
-    const name = window._displayName || 'пользователь';
-    reply(`Привет, ${name}! Я готов к вашим командам.`); return;
+  if(low.includes('привет')||low.includes('здравств')){
+    reply(`Приветствую, ${_name}. Чем могу помочь?`);return;
   }
-  // Name
-  if(lower.includes('как тебя зовут') || lower.includes('твоё имя') || lower.includes('кто ты')){
-    reply('Я J.A.R.V.I.S — Just A Rather Very Intelligent System. Ваш персональный ИИ ассистент.'); return;
+  // Who are you
+  if(low.includes('кто ты')||low.includes('как тебя зов')||low.includes('твоё имя')){
+    reply('Я J.A.R.V.I.S — ваш персональный ИИ ассистент.');return;
   }
 
-  // ---- AI FALLBACK ----
+  // PC commands — send to server
+  const pcKeywords=['открой','запусти','закрой','найди','напиши','создай','выключи','музык','громкост','скриншот','процессор','оперативн','диск','папк','файл','браузер'];
+  if(pcKeywords.some(k=>low.includes(k))){
+    await sendToServer(text);return;
+  }
+
+  // AI fallback
   await askAI(text);
 }
 
-// ======= SERVER COMMANDS =======
+// ========= SERVER =========
+let SERVER='http://localhost:5000';
 async function sendToServer(cmd){
   setStatus('ОТПРАВЛЯЮ НА ПК...');
-  try {
-    const res = await fetch('https://gorged-residue-operator.ngrok-free.dev/command', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({command: cmd})
-    });
-    const data = await res.json();
-    reply(data.response || 'Команда выполнена.');
-  } catch(e){
-    reply('Сервер управления ПК не запущен. Запустите server.py на вашем компьютере.');
-    document.getElementById('serverStatus').textContent = '● OFFLINE';
-    document.getElementById('serverStatus').style.color = '#ff4444';
+  try{
+    const r=await fetch(SERVER+'/command',{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify({command:cmd})});
+    const d=await r.json();
+    reply(d.response||'Команда выполнена.');
+  }catch(e){
+    reply('Сервер ПК не запущен. Запустите server.py на вашем компьютере.');
   }
 }
-
 async function checkServer(){
-  try {
-    const res = await fetch('https://gorged-residue-operator.ngrok-free.dev/ping', {signal:AbortSignal.timeout(2000)});
-    if(res.ok){
-      document.getElementById('serverStatus').textContent = '● ONLINE';
-      document.getElementById('serverStatus').style.color = '#22c55e';
-    }
-  } catch(e){
-    document.getElementById('serverStatus').textContent = '● OFFLINE';
-    document.getElementById('serverStatus').style.color = '#ff4444';
+  try{
+    const r=await fetch(SERVER+'/ping',{headers:{'ngrok-skip-browser-warning':'true'},signal:AbortSignal.timeout(2500)});
+    const on=r.ok;
+    document.getElementById('srvDot').className='srv-dot'+(on?' on':'');
+    document.getElementById('srvTxt').textContent=on?'СЕРВЕР АКТИВЕН':'СЕРВЕР ОТКЛЮЧЁН';
+    document.getElementById('srvVal').textContent=on?'● ONLINE':'● OFFLINE';
+    document.getElementById('srvVal').style.color=on?'#00e87a':'#ff4444';
+  }catch(e){
+    document.getElementById('srvDot').className='srv-dot';
+    document.getElementById('srvTxt').textContent='СЕРВЕР ОТКЛЮЧЁН';
+    document.getElementById('srvVal').textContent='● OFFLINE';
+    document.getElementById('srvVal').style.color='#ff4444';
   }
 }
-setInterval(checkServer, 10000);
 
-// ======= AI =======
-let aiMessages = [];
+// ========= AI =========
 async function askAI(text){
-  aiMessages.push({role:'user', content:text});
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
+  aiHistory.push({role:'user',content:text});
+  if(aiHistory.length>10)aiHistory=aiHistory.slice(-10);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:300,
-        system:`Ты J.A.R.V.I.S — голосовой ИИ ассистент. Отвечай коротко, чётко, на русском языке. Максимум 2-3 предложения. Можешь добавить немного персонажности как у Jarvis из Iron Man.`,
-        messages: aiMessages
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:300,
+        system:`Ты J.A.R.V.I.S — голосовой ИИ ассистент пользователя ${_name}. Отвечай коротко (1-2 предложения) на русском. Чёткий стиль, как у Jarvis из Iron Man.`,
+        messages:aiHistory
       })
     });
-    const data = await res.json();
-    if(data.content && data.content[0]){
-      const r = data.content[0].text;
-      aiMessages.push({role:'assistant', content:r});
-      reply(r);
-    } else { reply('Требуется API ключ для ИИ ответов.'); }
-  } catch(e){ reply('Не удалось получить ответ от ИИ.'); }
+    const d=await r.json();
+    if(d.content&&d.content[0]){const t=d.content[0].text;aiHistory.push({role:'assistant',content:t});reply(t);}
+    else reply('Требуется API ключ. Заполните поле apiKey в коде.');
+  }catch(e){reply('Не удалось получить ответ ИИ.')}
 }
 
+// ========= REPLY =========
 function reply(text){
-  document.getElementById('tReply').textContent = text;
-  speak(text, window._voiceType || 'male');
-  addHistory(document.getElementById('tUser').textContent.replace(/^[🗣💬]\s/,''), text);
+  document.getElementById('tReply').textContent=text;
+  speak(text,_voice);
+  const userTxt=document.getElementById('tUser').textContent.replace(/^[🗣💬]\s/,'');
+  addHistory(userTxt,text);
   cmdCount++;
-  document.getElementById('statCmds').textContent = cmdCount;
-  setStatus('ОЖИДАНИЕ КОМАНДЫ');
-  // save stats
-  if(window._userData && window.saveUserData){
-    window._userData.cmdCount = cmdCount;
-    window.saveUserData(window._userData);
-  }
+  setStatus('STANDBY');
+}
+function addHistory(cmd,resp){
+  const el=document.getElementById('histList');
+  const ph=el.querySelector('[style*="text-align"]');if(ph)ph.remove();
+  const d=document.createElement('div');d.className='hist-item';
+  d.innerHTML=`<b>🗣 ${cmd||'...'}</b>${resp.slice(0,70)}${resp.length>70?'...':''}`;
+  el.insertBefore(d,el.firstChild);
+  if(el.children.length>7)el.removeChild(el.lastChild);
 }
 
-function addHistory(cmd, resp){
-  const el = document.getElementById('historyMsgs');
-  const placeholder = el.querySelector('[style*="text-align"]');
-  if(placeholder) placeholder.remove();
-  const d = document.createElement('div');
-  d.className = 'hmsg';
-  d.innerHTML = `<strong>🗣 ${cmd||'...'}</strong>${resp.slice(0,80)}${resp.length>80?'...':''}`;
-  el.insertBefore(d, el.firstChild);
-  if(el.children.length > 8) el.removeChild(el.lastChild);
-}
-
-// ======= WEATHER =======
+// ========= WEATHER =========
 async function fetchWeather(){
-  try {
+  try{
     navigator.geolocation.getCurrentPosition(async pos=>{
-      const {latitude,longitude} = pos.coords;
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m`);
-      const data = await res.json();
-      const temp = Math.round(data.current_weather.temperature);
-      const code = data.current_weather.weathercode;
-      const descs = {0:'☀️ Ясно',1:'🌤 Малооблачно',2:'⛅ Облачно',3:'☁️ Пасмурно',51:'🌦 Морось',61:'🌧 Дождь',71:'🌨 Снег',80:'🌦 Ливень',95:'⛈ Гроза'};
-      const desc = descs[code] || '🌡 Переменная';
-      window._weather = {temp, desc: desc.replace(/^[^\s]+\s/,''), icon: desc.split(' ')[0]};
-      document.getElementById('weatherCard').innerHTML = `<div class="weather-icon">${desc.split(' ')[0]}</div><div class="weather-info"><div class="w-temp">${temp}°C</div><div class="w-desc">${desc.slice(3)}</div></div>`;
-    }, ()=>{
-      document.getElementById('weatherCard').innerHTML = '<div class="weather-icon">📍</div><div class="weather-info"><div class="w-temp">—</div><div class="w-desc">Разрешите геолокацию</div></div>';
+      const{latitude:lat,longitude:lon}=pos.coords;
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+      const d=await r.json();
+      const temp=Math.round(d.current_weather.temperature);
+      const codes={0:'☀️ Ясно',1:'🌤 Малооблачно',2:'⛅ Облачно',3:'☁️ Пасмурно',51:'🌦 Морось',61:'🌧 Дождь',71:'🌨 Снег',80:'🌦 Ливень',95:'⛈ Гроза'};
+      const desc=(codes[d.current_weather.weathercode]||'🌡 Переменная').replace(/^\S+\s/,'');
+      const icon=(codes[d.current_weather.weathercode]||'🌡').split(' ')[0];
+      window._weather={temp,desc,icon};
+      document.getElementById('weatherCard').innerHTML=`<div class="w-icon">${icon}</div><div><div class="w-temp">${temp}°C</div><div class="w-desc">${desc}</div></div>`;
+    },()=>{
+      document.getElementById('weatherCard').innerHTML='<div class="w-icon">📍</div><div><div class="w-temp">—</div><div class="w-desc">Нет геолокации</div></div>';
     });
-  } catch(e){}
+  }catch(e){}
 }
 
-// ======= PROFILE =======
-window.toggleProfile = ()=>{ document.getElementById('profilePanel').classList.toggle('open'); };
-
-window.setVoice = (v)=>{
-  window._voiceType = v;
-  document.getElementById('vpMale').classList.toggle('active', v==='male');
-  document.getElementById('vpFemale').classList.toggle('active', v==='female');
-  speak(v==='female'?'Привет! Это мой голос.':'Здравствуйте. Это мой голос.', v);
-};
-
-window.saveProfile = async ()=>{
-  const name = document.getElementById('ppNameInput').value.trim() || window._displayName;
-  window._displayName = name;
-  document.getElementById('hudUser').textContent = name;
-  document.getElementById('ppName').textContent = name;
-  if(window._userData){
-    window._userData.displayName = name;
-    window._userData.voice = window._voiceType;
-    if(window.saveUserData) await window.saveUserData(window._userData);
-  }
-  showNotif('✅ Профиль сохранён!');
-  speak(`Настройки сохранены, ${name}.`, window._voiceType);
-};
-
-function updateVoicePicker(v){
-  document.getElementById('vpMale').classList.toggle('active', v==='male');
-  document.getElementById('vpFemale').classList.toggle('active', v==='female');
+// ========= UTILS =========
+function setStatus(t){document.getElementById('statusTxt').textContent=t}
+function showNotif(msg){
+  const n=document.getElementById('notif');n.textContent=msg;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2800);
 }
-
-// ======= UTILS =======
-function setStatus(t){ document.getElementById('statusText').textContent = t; }
-
-window.showNotif = (msg)=>{
-  const n = document.getElementById('notif');
-  n.textContent = msg; n.classList.add('show');
-  setTimeout(()=>n.classList.remove('show'), 3000);
-};
-
-window.showWelcomeScreen = showWelcomeScreen;
-window.showMain = showMain;
-window.showScreen = showScreen;
-window.speak = speak;
-window._voiceType = 'male';
-window._displayName = 'Пользователь';
+function toggleSettings(){showNotif('⚙ Настройки голоса: нажмите вернуться на стартовый экран')}
 </script>
 </body>
 </html>
