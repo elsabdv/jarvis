@@ -1140,7 +1140,7 @@ async function processCommand(text){
 async function sendToServer(cmd){
   setStatus('ОТПРАВЛЯЮ НА ПК...');
   try {
-    const res = await fetch('http://localhost:5000/command', {
+    const res = await fetch('https://gorged-residue-operator.ngrok-free.dev/command', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({command: cmd})
@@ -1156,7 +1156,7 @@ async function sendToServer(cmd){
 
 async function checkServer(){
   try {
-    const res = await fetch('http://localhost:5000/ping', {signal:AbortSignal.timeout(2000)});
+    const res = await fetch('https://gorged-residue-operator.ngrok-free.dev/ping', {signal:AbortSignal.timeout(2000)});
     if(res.ok){
       document.getElementById('serverStatus').textContent = '● ONLINE';
       document.getElementById('serverStatus').style.color = '#22c55e';
